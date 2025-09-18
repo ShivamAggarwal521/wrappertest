@@ -1,36 +1,16 @@
 import { useState } from 'react';
-// import abusiveWordsData from '../../Jsonfile/abusiveWords.json'
-const abusiveWordsData = {
-  "en": ["abuse", "hate", "spam", "offensive"],
-  "hi": ["गाली", "नफरत", "स्पैम"],
-  "es": ["abuso", "odio", "spam"],
-  "fr": ["abus", "haine", "spam"],
-  "de": ["missbrauch", "hass", "spam"],
-  "it": ["abuso", "odio", "spam"],
-  "pt": ["abuso", "ódio", "spam"],
-  "ru": ["злоупотребление", "ненависть", "спам"],
-  "ja": ["虐待", "憎しみ", "スパム"],
-  "zh": ["滥用", "仇恨", "垃圾邮件"],
-  "ar": ["إساءة", "كراهية", "بريد مزعج"],
-  "bn": ["অপব্যবহার", "ঘৃণা", "স্প্যাম"],
-  "ta": ["தவறான பயன்பாடு", "வெறுப்பு", "ஸ்பேம்"],
-  "te": ["దుర్వినియోగం", "ద్వేషం", "స్పామ్"],
-  "gu": ["દુરુપયોગ", "દ્વેષ", "સ્પામ"],
-  "mr": ["दुरुपयोग", "द्वेष", "स्पॅम"],
-  "kn": ["ದುರುಪಯೋಗ", "ದ್ವೇಷ", "ಸ್ಪ್ಯಾಮ್"],
-  "ml": ["ദുരുപയോഗം", "ദ്വേഷം", "സ്പാം"],
-  "pa": ["ਦੁਰਵਰਤੋਂ", "ਨਫਰਤ", "ਸਪੈਮ"],
-  "ur": ["غلط استعمال", "نفرت", "اسپیم"],
-  "or": ["ଦୁରୁପଯୋଗ", "ଘୃଣା", "ସ୍ପାମ୍"],
-  "as": ["দুৰ্ব্যৱহাৰ", "ঘৃণা", "স্পাম"],
-  "ne": ["दुरुपयोग", "घृणा", "स्पाम"]
-}
+import abusiveWordsData from '../Jsonfile/abusiveWords.json';
 
 const getAllAbusiveWords = (): string[] => {
   const words: string[] = [];
-  Object.values(abusiveWordsData).forEach((languageWords: string[]) => {
-    words.push(...languageWords);
-  });
+  // The JSON structure has an array of objects with 'words' property
+  if (Array.isArray(abusiveWordsData)) {
+    abusiveWordsData.forEach((languageData: any) => {
+      if (languageData.words && Array.isArray(languageData.words)) {
+        words.push(...languageData.words);
+      }
+    });
+  }
   return words;
 };
 
