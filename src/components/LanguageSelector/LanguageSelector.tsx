@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Globe } from 'lucide-react';
-import { useLanguage } from '../services/languageContext';
+// import { useLanguage } from '../services/languageContext';
 
 interface LanguageSelectorProps {
   isOpen: boolean;
@@ -16,7 +16,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   currentLanguage,
   onLanguageChange,
 }) => {
-  const { currentLanguage: contextLanguage } = useLanguage();
+  // const { currentLanguage: contextLanguage } = useLanguage();
 
   const languages = [
     { code: 'en', name: 'English', flag: '🇺🇸' },

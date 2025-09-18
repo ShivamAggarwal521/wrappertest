@@ -30,7 +30,6 @@ import { sendMessageToAPI, getApiLanguageCode } from "../services/chatService";
 import { voiceRecordingService } from "../services/voiceService";
 import { handleVoiceInteraction } from "../services/voiceService";
 import ConversationManager, {
-  type Message,
   type FontSettings,
   type ThemeSettings,
   type GreetingSettings,
@@ -114,11 +113,6 @@ const Chatbot: React.FC = () => {
   } = useAbuseFilter(inputValue, 4);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Move the conditional rendering for hiddenRoutes below all hooks
-  if (hiddenRoutes.includes(location.pathname)) {
-    return null;
-  }
-
   useEffect(() => {
     const history = conversationManager.getHistory();
     if (history.length === 0) {
@@ -139,6 +133,11 @@ const Chatbot: React.FC = () => {
       setShowInitialGreeting(false);
     }
   }, [userPreferences.greetingSettings, conversationManager]);
+
+  // Move the conditional rendering for hiddenRoutes below all hooks
+  if (hiddenRoutes.includes(location.pathname)) {
+    return null;
+  }
 
   const scrollToBottom = () => {
     if (autoScrollEnabled) {

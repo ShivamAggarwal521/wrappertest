@@ -24,7 +24,7 @@ const VirtualKeyboard: React.FC<VirtualKeyboardProps> = ({
   currentText,
   languages = translationService.getSupportedLanguages(),
   showLanguageSelection = true,
-  defaultLanguage: string = 'en',
+  // defaultLanguage = 'en',
   closeOnSubmit = true
 }) => {
   const [typedText, setTypedText] = useState(currentText);
