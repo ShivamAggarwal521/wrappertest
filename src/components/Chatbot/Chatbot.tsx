@@ -26,10 +26,7 @@ import {
 import { BsSoundwave } from "react-icons/bs";
 
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  sendMessageToAPI,
-  getApiLanguageCode,
-} from "../services/chatService";
+import { sendMessageToAPI, getApiLanguageCode } from "../services/chatService";
 import { voiceRecordingService } from "../services/voiceService";
 import { handleVoiceInteraction } from "../services/voiceService";
 import ConversationManager, {
@@ -65,9 +62,7 @@ const Chatbot: React.FC = () => {
     "/super-admin/companies",
     "/super-admin",
   ]; // add all  the location to hide  chat bot //
-  if (hiddenRoutes.includes(location.pathname)) {
-    return null;
-  }
+
   const micButtonRef = useRef<HTMLButtonElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -100,6 +95,16 @@ const Chatbot: React.FC = () => {
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
   const [incognitoMode, setIncognitoMode] = useState(false);
 
+  const conversationManager = ConversationManager.getInstance();
+  // Always call hooks at the top level, never conditionally
+  // Removed unused 'context' state
+  const chatbotRef = useRef<HTMLDivElement>(null);
+
+  const [userPreferences, setUserPreferences] = useState(() =>
+    conversationManager.getPreferences()
+  );
+  const [showInitialGreeting, setShowInitialGreeting] = useState(true);
+
   const {
     filteredMessage,
     isAbusive,
@@ -107,17 +112,12 @@ const Chatbot: React.FC = () => {
     incrementViolation,
     isBanned,
   } = useAbuseFilter(inputValue, 4);
-
-  const chatbotRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const conversationManager = ConversationManager.getInstance();
-  useState(() => conversationManager.getContext("default-user"));
-
-  const [userPreferences, setUserPreferences] = useState(() =>
-    conversationManager.getPreferences()
-  );
-  const [showInitialGreeting, setShowInitialGreeting] = useState(true);
+  // Move the conditional rendering for hiddenRoutes below all hooks
+  if (hiddenRoutes.includes(location.pathname)) {
+    return null;
+  }
 
   useEffect(() => {
     const history = conversationManager.getHistory();
@@ -1261,18 +1261,21 @@ const Chatbot: React.FC = () => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="chat-window"
-            style={{
-              background: userPreferences.themeSettings.background,
-              color: userPreferences.themeSettings.text,
-              boxShadow: userPreferences.themeSettings.shadow,
-              border: `1px solid ${userPreferences.themeSettings.border}`,
-            }}
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ type: "spring", stiffness: 300, damping: 25 }}
-          >
+  className="chat-window"
+  style={{
+    background: userPreferences.themeSettings.background,
+    color: userPreferences.themeSettings.text,
+    boxShadow: userPreferences.themeSettings.shadow,
+    border: `1px solid ${userPreferences.themeSettings.border}`,
+    position: 'fixed',
+    transform: 'none',
+    willChange: 'auto'
+  }}
+  initial={{ opacity: 0 }}
+  animate={{ opacity: 1 }}
+  exit={{ opacity: 0 }}
+  transition={{ duration: 0.2 }}
+>
             {/* Sidebar */}
             <div className="chat-sidebar">
               {/* Offers */}

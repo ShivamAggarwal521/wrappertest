@@ -4,6 +4,14 @@
   right: 20px;
   z-index: 1001;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  transform: none !important;
+}
+.chat-window * {
+  transform: none !important;
+}
+
+.chat-window [style*="transform"] {
+  transform: none !important;
 }
 
 .chat-toggle {
@@ -92,33 +100,40 @@
 }
 
 .chat-window {
-  position: absolute;
+  position: fixed;
   bottom: 80px;
-  right: 0;
-  width: 440px; /* Increased width to accommodate sidebar */
+  right: 20px;
+  width: 440px;
   height: 600px;
+  max-height: 600px;
+  min-height: 600px;
   background: white;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  z-index: 1000;
+  border-radius: 12px;
+  resize: none;
+  transform: none !important;
 }
 
 /* Chat Sidebar */
 .chat-sidebar {
   position: absolute;
   left: 0;
-  top: 60px; /* Position below header instead of top: 0 */
+  top: 0;
   width: 60px;
-  height: calc(100% - 60px); /* Adjust height to not overlap header */
+  height: 100%;
   background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
   border-right: 1px solid #e8eaed;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px 0;
+  padding: 80px 0 20px 0;
   gap: 16px;
-  z-index: 1;
+  z-index: 10;
+  box-sizing: border-box;
 }
 
 .sidebar-icon {
@@ -206,11 +221,17 @@
 /* Adjust chat header to account for sidebar */
 .chat-header {
   background: white;
-  padding: 16px 20px 16px 80px; /* Added left padding for sidebar */
+  padding: 16px 20px 16px 80px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid #e8eaed;
+  flex-shrink: 0;
+  min-height: 70px;
+  max-height: 70px;
+  position: relative;
+  z-index: 5;
+  box-sizing: border-box;
 }
 
 .chat-header-info {
@@ -782,8 +803,13 @@
   display: flex;
   align-items: center;
   background: #f8f9fa;
-  padding: 8px 12px 8px 80px; /* Added left padding for sidebar */
+  padding: 8px 12px 8px 80px;
   gap: 8px;
+  flex-shrink: 0;
+  border-bottom: 1px solid #e8eaed;
+  min-height: 50px;
+  max-height: 50px;
+  box-sizing: border-box;
 }
 
 .search-bar-wrapper {
@@ -856,12 +882,16 @@
 /* Adjust chat messages container to account for sidebar */
 .chat-messages {
   flex: 1;
-  padding: 20px 20px 20px 80px; /* Added left padding for sidebar */
+  padding: 20px 20px 20px 80px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 16px;
   background: #f8f9fa;
+  min-height: 0;
+  box-sizing: border-box;
+  height: calc(600px - 70px - 50px - 100px); /* Increased input area space */
+  margin-bottom: 10px; /* Add margin between messages and input */
 }
 
 .chat-messages::-webkit-scrollbar {
@@ -1018,10 +1048,16 @@
   flex-direction: column;
   align-items: center;
   background: #f8f9fa;
-  padding: 8px 12px 8px 80px; /* Added left padding for sidebar */
-  border: 1px solid #e8eaed;
-  transition: all 0.2s ease;
+  padding: 16px 20px 20px 80px; /* Increased padding */
+  border-top: 1px solid #e8eaed;
+  flex-shrink: 0;
+  min-height: 100px; /* Increased height */
+  max-height: 100px;
+  box-sizing: border-box;
+  position: relative;
+  bottom: 0;
 }
+
 
 .input-container input {
   flex: 1;
@@ -1042,12 +1078,13 @@
 .input-actions {
   display: flex;
   align-items: center;
-
+  flex-shrink: 0;
 }
 
+
 .input-action-btn {
-  width: 36px;
-  height: 36px;
+  width: 56px;
+  height: 30px;
   border: none;
   background: none;
   color: #5f6368;
@@ -1064,8 +1101,8 @@
 }
 
 .send-btn {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: #4285f4;
   border: none;
@@ -1075,6 +1112,7 @@
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .send-btn:hover:not(:disabled) {
@@ -1084,6 +1122,12 @@
 .send-btn:disabled {
   background: #dadce0;
   cursor: not-allowed;
+}
+.chat-window::after {
+  content: '';
+  height: 20px;
+  flex-shrink: 0;
+  background: #f8f9fa;
 }
 
 /* Mobile responsiveness adjustments */
@@ -1096,14 +1140,16 @@
   .chat-window {
     width: calc(100vw - 30px);
     height: 80vh;
+    max-height: 80vh;
+    min-height: 400px;
     bottom: 80px;
-    right: -15px;
+    right: 15px;
+    left: 15px;
   }
 
   .chat-sidebar {
     width: 50px;
-    top: 50px; /* Adjust for mobile header height */
-    height: calc(100% - 50px);
+    padding: 60px 0 20px 0;
   }
 
   .sidebar-icon {
@@ -1116,12 +1162,22 @@
     height: 18px;
   }
 
+  .input-container {
+    padding: 0px 16px 0px 60px;
+    min-height: 90px;
+    max-height: 90px;
+  }
+  .chat-messages {
+    height: calc(80vh - 60px - 45px - 90px);
+    margin-bottom: 8px;
+  }
+  .input-area {
+    gap: 8px;
+  }
   /* Adjust padding for mobile sidebar */
   .chat-header,
-  .search-input-container,
-  .chat-messages,
-  .input-container {
-    padding-left: 60px; /* Reduced padding for mobile sidebar */
+  .search-input-container{
+    padding-left: 60px;
   }
 }
 
@@ -1475,26 +1531,31 @@
 .input-actions-container {
   display: flex;
   justify-content: center;
+  margin-bottom: 8px; /* Add space between action buttons and input */
+  width: 100%;
 }
 
 .input-area {
   display: flex;
   align-items: center;
   width: 100%;
-  margin-top: 2px;
-  gap: 8px;
+  gap: 12px; /* Increased gap */
+  margin-top: 8px;
 }
 
 .inputtextarea {
   width: 100%;
-  border: none;
-  background: none;
-  border-radius: 30px;
-  padding: 12px 12px;
+  border: 1px solid #dadce0;
+  background: white;
+  border-radius: 24px;
+  padding: 12px 16px; /* Increased padding */
   outline: none;
   font-size: 14px;
   color: #202124;
   resize: none;
+  min-height: 20px;
+  max-height: 60px; /* Limit max height */
+  box-sizing: border-box;
 }
 .file-attachment-popup {
   position: absolute;

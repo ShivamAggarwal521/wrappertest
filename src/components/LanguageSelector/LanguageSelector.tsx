@@ -50,47 +50,71 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: 'rgba(0, 0, 0, 0.5)',
-              zIndex: 1000,
-            }}
-          />
+    <>
+      <style>
+        {`
+          .language-modal-container {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            z-index: 1000 !important;
+            pointer-events: none !important;
+          }
+          .language-modal-content {
+            pointer-events: auto !important;
+            position: relative !important;
+            top: auto !important;
+            left: auto !important;
+            transform: none !important;
+          }
+        `}
+      </style>
+      <AnimatePresence>
+        {isOpen && (
+          <div className="language-modal-container">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={onClose}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                zIndex: 1000,
+              }}
+            />
 
           {/* Modal */}
           <motion.div
+            className="language-modal-content"
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: 'spring', stiffness: 300, damping: 25 }}
             onClick={(e) => e.stopPropagation()}
             style={{
-              position: 'fixed',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
               background: '#ffffff',
               borderRadius: '16px',
               padding: '24px',
               width: '90vw',
               maxWidth: '500px',
-              maxHeight: '80vh',
+              maxHeight: '70vh',
               overflow: 'auto',
               boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)',
               zIndex: 1001,
+              margin: '0',
+              display: 'flex',
+              flexDirection: 'column',
             }}
           >
             {/* Header */}
@@ -133,8 +157,10 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
                 gap: '8px',
-                maxHeight: '400px',
+                maxHeight: '350px',
                 overflowY: 'auto',
+                flex: 1,
+                minHeight: 0,
               }}
             >
               {languages.map((language) => (
@@ -194,9 +220,10 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
               ))}
             </div>
           </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+          </div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 
