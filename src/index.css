@@ -1,4 +1,4 @@
-:root {
+/* :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -78,4 +78,29 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+} */
+/* index.css - minimal, no global layout / centering */
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: transparent !important;
+  color: inherit;
+}
+
+/* keep #root neutral for dev */
+#root, .App {
+  background: transparent !important;
+}
+
+/* small helpful defaults (non-intrusive) */
+a { text-decoration: none; }
+button { font-family: inherit; }
+
+/* If you need to scoping-fix host CSS collisions later, see "isolation" notes below. */
