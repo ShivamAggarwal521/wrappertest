@@ -25,6 +25,8 @@ export type BackendApiResponse = {
   time_taken?: number;
   chunks_used?: string[];
   language?: string;
+  doc_id?: string;
+
 };
 
 // Language code mapping utility
@@ -68,20 +70,22 @@ export const getApiLanguageCode = (languageCode: string): string => {
   
   return languageCodeMap[languageCode] || 'en-IN';
 };
-
+const API_BASE =import.meta.env.VITE_API_BASE as string;
 // Real API call to your FastAPI backend
+
 export const sendMessageToAPI = async (
   message: string,
   context?: string,
   langCode?: string
 ): Promise<BackendApiResponse> => {
   try {
-    const response = await fetch('http://10.150.0.4:8000/query', {
+    const response = await fetch(`${API_BASE}/query`, {   // <-- UPDATED
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         query: message,
-        lang_code: langCode || 'en-IN'
+        lang_code: langCode || 'en-IN',
+        doc_id: "aicteinternshipportal",
       })
     });
 
@@ -90,11 +94,11 @@ export const sendMessageToAPI = async (
     }
 
     const data: BackendApiResponse = await response.json();
-    return data; // ✅ keep everything (including predicted_questions)
+    return data;
   } catch (error) {
     console.error('Error calling backend API:', error);
     if (error instanceof TypeError && error.message.includes('fetch')) {
-      console.log('Network error - API server may not be running at http://10.150.0.4:8000');
+      console.log('Network error - API server may not be running at https://chatbot.aicte-india.org/:8000');
     } else if (error instanceof Error && error.message.includes('HTTP error')) {
       console.log('API server responded with an error');
     }
