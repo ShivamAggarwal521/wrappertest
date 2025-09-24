@@ -72,6 +72,26 @@ export const getApiLanguageCode = (languageCode: string): string => {
 };
 const API_BASE =import.meta.env.VITE_API_BASE as string;
 // Real API call to your FastAPI backend
+// At the top of chatService.ts
+const urlParams = new URLSearchParams(window.location.search);
+const docIdFromQuery = urlParams.get("doc_id");
+
+let effectiveDocId = '';
+
+if (docIdFromQuery) {
+  try {
+    // Parse URL and get only the hostname
+    effectiveDocId = new URL(docIdFromQuery).hostname;
+  } catch (err) {
+    console.warn("Invalid doc_id URL, falling back to window.location.hostname");
+    effectiveDocId = window.location.hostname;
+  }
+} else {
+  effectiveDocId = window.location.hostname;
+}
+
+console.log("📌 Effective doc_id:", effectiveDocId);
+// console.log(effectiveDocId)
 
 export const sendMessageToAPI = async (
   message: string,
@@ -79,13 +99,15 @@ export const sendMessageToAPI = async (
   langCode?: string
 ): Promise<BackendApiResponse> => {
   try {
-    const response = await fetch(`${API_BASE}/query`, {   // <-- UPDATED
+    console.log("📌 Sending to backend with doc_id:", effectiveDocId); // 👈 log before API call
+
+    const response = await fetch(`${API_BASE}/query`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         query: message,
         lang_code: langCode || 'en-IN',
-        doc_id: "aicteinternshipportal",
+        doc_id: effectiveDocId
       })
     });
 
@@ -94,18 +116,15 @@ export const sendMessageToAPI = async (
     }
 
     const data: BackendApiResponse = await response.json();
+
+    console.log("✅ Backend response received with doc_id:", data.doc_id); // 👈 log after API response
+
     return data;
   } catch (error) {
     console.error('Error calling backend API:', error);
-    if (error instanceof TypeError && error.message.includes('fetch')) {
-      console.log('Network error - API server may not be running at https://chatbot.aicte-india.org/:8000');
-    } else if (error instanceof Error && error.message.includes('HTTP error')) {
-      console.log('API server responded with an error');
-    }
+    console.log("❌ Using fallback with doc_id:", effectiveDocId); // 👈 log even in fallback
 
-    console.log('Falling back to simulated response...');
-    // Ensure fallback returns the SAME SHAPE as BackendApiResponse
-    const fallbackAnswer = generateSmartResponse(message, context); // likely a string now
+    const fallbackAnswer = generateSmartResponse(message, context);
     return {
       query: message,
       translated_query: message,
@@ -118,10 +137,12 @@ export const sendMessageToAPI = async (
       time_taken: 0,
       chunks_used: [],
       language: langCode || 'en-IN',
-      web_used: undefined
+      web_used: undefined,
+      doc_id: effectiveDocId // 👈 also add here for fallback
     };
   }
 };
+
 
 
 // Enhanced response generation (fallback when backend is unavailable)
