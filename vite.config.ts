@@ -29,19 +29,10 @@ export default defineConfig({
   plugins: [react()],
   build: {
     outDir: "dist",
-    lib: {
-      // just give the relative path directly
-      entry: "src/widget.tsx",
-      name: "ChatbotWidget",
-      fileName: () => "chatbot-widget.js",
-      formats: ["iife"],
-    },
+    emptyOutDir: true
   },
   server: {
-    allowedHosts: [
-      '.ngrok-free.app', // allow all ngrok subdomains
-      'localhost'         // keep localhost allowed
-    ]
+    allowedHosts: ['.ngrok-free.app', 'localhost']
   }
 });
   
