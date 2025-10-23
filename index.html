@@ -21,13 +21,14 @@
       Security Note: This CSP prevents clickjacking attacks by restricting which domains can embed this iframe.
       Only domains listed in frame-ancestors will be able to embed this chatbot widget.
     -->
-    <meta http-equiv="Content-Security-Policy" content="
+     <meta http-equiv="Content-Security-Policy" content="
       default-src 'self';
       script-src 'self';
+      font-src 'self' https://assets.ngrok.com data:;
       style-src 'self' 'unsafe-inline';
       img-src 'self' data:;
       connect-src 'self' https://*.ngrok.io;  
-      frame-ancestors https://www.my-website.com https://testsite.com http://localhost:5173;
+      frame-ancestors https://www.my-website.com https://xfxfg.vercel.app https://coupon-hub-tau.vercel.app;
     " />
     
     <title>Vite + React + TS</title>
