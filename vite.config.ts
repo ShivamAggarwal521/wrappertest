@@ -32,7 +32,9 @@ export default defineConfig({
     emptyOutDir: true
   },
   server: {
-    allowedHosts: ['.ngrok-free.app', 'localhost']
+    allowedHosts: [
+      ".ngrok-free.app",
+      "localhost"
+    ]
   }
 });
-  
