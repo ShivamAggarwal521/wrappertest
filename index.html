@@ -4,6 +4,32 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Content Security Policy (CSP) Configuration -->
+    <!-- 
+      CSP Documentation: https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
+      
+      To add/remove allowed domains for iframe embedding:
+      1. Locate the 'frame-ancestors' directive below
+      2. Add new domains with https:// or http:// prefix
+      3. For localhost development, include http://localhost:PORT (e.g., http://localhost:5173)
+      4. For production domains, use https:// (e.g., https://www.my-website.com)
+      5. Separate multiple domains with spaces
+      
+      Example frame-ancestors: https://www.my-website.com https://testsite.com http://localhost:5173;
+      
+      Security Note: This CSP prevents clickjacking attacks by restricting which domains can embed this iframe.
+      Only domains listed in frame-ancestors will be able to embed this chatbot widget.
+    -->
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self';
+      script-src 'self';
+      style-src 'self' 'unsafe-inline';
+      img-src 'self' data:;
+      connect-src 'self' https://*.ngrok.io;  
+      frame-ancestors https://www.my-website.com https://testsite.com http://localhost:5173;
+    " />
+    
     <title>Vite + React + TS</title>
   </head>
   <body>

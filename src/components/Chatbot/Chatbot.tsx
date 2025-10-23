@@ -45,10 +45,20 @@ import VirtualKeyboard from "./VirtualKeyboard";
 import { translationService } from "../services/translationService";
 import MultilingualFAQ from "./MultilingualFAQ";
 import { useLanguage } from "../services/languageContext";
-import UploadForm from "./UploadForm";
 import { useAbuseFilter } from "./useAbuseFilter";
 import { useLocation } from "react-router-dom";
 import FormDialog from "./FormDialog";
+
+interface Message {
+  id: number;
+  text: string;
+  sender: "user" | "bot"; // Restrict sender to only these two values
+  timestamp: Date;
+  isFile?: boolean;
+  fileName?: string;
+  webUsed?: Array<{ url: string; title?: string }>;
+  file?: File; // Add file property to Message interface
+}
 
 const Chatbot: React.FC = () => {
   const location = useLocation();
@@ -88,7 +98,9 @@ const Chatbot: React.FC = () => {
   const [themeCustomizerOpen, setThemeCustomizerOpen] = useState(false);
   const [greetingCustomizerOpen, setGreetingCustomizerOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [showUploadForm, setShowUploadForm] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null); // New state for selected file
 
   // New features state
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
@@ -220,8 +232,8 @@ const Chatbot: React.FC = () => {
         ? res.predicted_questions
         : [];
 
-      // (Optional) translate chips/answer if your UI language isn’t English
-      // ...skip if you don’t translate elsewhere
+      // (Optional) translate chips/answer if your UI language isn't English
+      // ...skip if you don't translate elsewhere
 
       // 4) Push bot message
       const botId = Date.now() + 1;
@@ -295,11 +307,11 @@ const Chatbot: React.FC = () => {
   }, [currentSearchIndex, filteredMessages]);
 
   // CHANGE: reusable sender that handles API call, translation, and suggestions
-  const sendMessageWithText = async (text: string) => {
-    if (!text || !text.trim()) return;
+  const sendMessageWithText = async (text: string, file: File | null = null) => {
+    if (!text.trim() && !file) return;
 
     // 1) push user's message (UI + conversationManager)
-    addMessageToChat({ role: "user", text });
+    addMessageToChat({ role: "user", text, file });
 
     setIsTyping(true);
     try {
@@ -307,14 +319,14 @@ const Chatbot: React.FC = () => {
       const apiLangCode = getApiLanguageCode(currentLanguage);
 
       // full JSON from API (BackendApiResponse)
-      const res = await sendMessageToAPI(text, contextInfo, apiLangCode);
+      const res = await sendMessageToAPI(text, contextInfo, apiLangCode, file);
 
       const answerText = res?.answer ?? "";
       const predicted = Array.isArray(res?.predicted_questions)
         ? res.predicted_questions
         : [];
 
-      // translate the *answer* if UI language != en
+      // (Optional) translate chips/answer if your UI language != en
       let finalAnswer = answerText;
       if (currentLanguage !== "en" && answerText) {
         const tr = await translationService.translateText(
@@ -373,7 +385,7 @@ const Chatbot: React.FC = () => {
 
   // CHANGE: keep your abuse-filter logic intact, then delegate to sendMessageWithText
   const handleSendMessage = async () => {
-    if (isBanned || !inputValue.trim()) return;
+    if (isBanned || (!inputValue.trim() && !selectedFile)) return; // Allow sending with only a file
 
     if (isAbusive) {
       incrementViolation();
@@ -427,13 +439,15 @@ const Chatbot: React.FC = () => {
       conversationManager.addMessage(userMsg);
       conversationManager.addMessage(botWarning);
       setInputValue("");
+      setSelectedFile(null); // Clear selected file after abusive message
       return;
     }
 
     // ✅ normal flow — only send via sendMessageWithText
     const text = inputValue.trim();
     setInputValue("");
-    await sendMessageWithText(text);
+    await sendMessageWithText(text, selectedFile); // Pass selectedFile
+    setSelectedFile(null); // Clear selected file after sending
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -444,92 +458,24 @@ const Chatbot: React.FC = () => {
   };
 
   const handleClickFileInput = () => {
-    setShowUploadForm(true);
+    fileInputRef.current?.click();
   };
 
-  const handleUploadFormSubmit = (userMessage: string, botResponse: string) => {
-    const userMsg: Message = {
-      id: Date.now(),
-      text: userMessage,
-      sender: "user",
-      timestamp: new Date(),
-      isFile: true,
-    };
-
-    setMessages((prev) => [...prev, userMsg]);
-    conversationManager.addMessage(userMsg);
-
-    const botMsg: Message = {
-      id: Date.now() + 1,
-      text: botResponse,
-      sender: "bot",
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, botMsg]);
-    conversationManager.addMessage(botMsg);
-  };
-
-  const stopWaveAnimation = () => {
-    if (micButtonRef.current) {
-      micButtonRef.current.classList.remove("recording-pulse");
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files.length > 0) {
+      setSelectedFile(event.target.files[0]);
     }
   };
 
-  const stopRecording = async () => {
-    if (!isRecording) return;
-    clearRecordingTimeout();
-
-    try {
-      const response = await voiceRecordingService.completeRecording(
-        currentLanguage
-      );
-      setIsRecording(false);
-      stopWaveAnimation();
-
-      if (response?.success && response?.transcription) {
-        const cleanedText = response.transcription.replace(/[।.]/g, "");
-        setInputValue(cleanedText);
-      } else {
-        console.warn("Transcription failed:", response?.error);
-        setShowMicWarning(true);
-        setTimeout(() => setShowMicWarning(false), 5000);
-      }
-    } catch (error) {
-      console.error("Stop Recording Error:", error);
-      setIsRecording(false);
-      stopWaveAnimation();
-      setShowMicWarning(true);
-      setTimeout(() => setShowMicWarning(false), 5000);
+  const handleRemoveFile = () => {
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""; // Clear the input value to allow re-selection of the same file
     }
   };
-
-  // const addMessageToChat = (message: { role: string; text: any }) => {
-  //   const newMessage: Message = {
-  //     id: Date.now(),
-  //     text: message.text,
-  //     sender: message.role === "user" ? "user" : "bot",
-  //     timestamp: new Date(),
-  //   };
-
-  //   setMessages((prev) => [...prev, newMessage]);
-  //   conversationManager.addMessage(newMessage);
-  // };
-  // Chatbot.tsx
-  // Chatbot.tsx — replace current addMessageToChat with this
-  // Move interface to module level
-  interface Message {
-    id: number;
-    text: string;
-    sender: "user" | "bot"; // Restrict sender to only these two values
-    timestamp: Date;
-    isFile?: boolean;
-    fileName?: string;
-    webUsed?: Array<{ url: string; title?: string }>;
-  }
 
   const addMessageToChat = (
-    message: { role: string; text: any; webUsed?: any[] },
+    message: { role: string; text: any; webUsed?: any[]; file?: File },
     skipConversationManager = false
   ): Message => {
     const safeText =
@@ -545,6 +491,9 @@ const Chatbot: React.FC = () => {
       sender,
       timestamp: new Date(),
       webUsed: message.webUsed,
+      isFile: !!message.file, // Set isFile if file exists
+      fileName: message.file?.name, // Set fileName if file exists
+      file: message.file,
     };
 
     setMessages((prev) => {
@@ -553,7 +502,8 @@ const Chatbot: React.FC = () => {
       if (
         last &&
         last.sender === newMessage.sender &&
-        last.text === newMessage.text
+        last.text === newMessage.text &&
+        !newMessage.file // Also check if a file is present to avoid deduping file messages
       ) {
         console.log("addMessageToChat: skipped duplicate", newMessage);
         return prev;
@@ -1200,6 +1150,11 @@ const Chatbot: React.FC = () => {
         fontWeight: userPreferences.fontSettings.fontWeight,
         lineHeight: userPreferences.fontSettings.lineHeight,
         letterSpacing: `${userPreferences.fontSettings.letterSpacing}px`,
+        // Define CSS variables for theming
+        '--surface-color': userPreferences.themeSettings.surface,
+        '--border-color': userPreferences.themeSettings.border,
+        '--text-color': userPreferences.themeSettings.text,
+        '--text-secondary-color': userPreferences.themeSettings.textSecondary,
       }}
     >
       {/* Chat Toggle Button */}
@@ -2433,6 +2388,12 @@ const Chatbot: React.FC = () => {
                 >
                   <Paperclip size={22} />
                 </motion.button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  style={{ display: "none" }}
+                />
                 <motion.button
                   className="input-action-btn"
                   onClick={handleVirtualKeyboard}
@@ -2480,7 +2441,26 @@ const Chatbot: React.FC = () => {
                   <BsSoundwave size={22} />
                 </motion.button>
               </div>
-              <div className="input-area">
+              <div className={`input-area ${selectedFile ? "file-selected" : ""}`}> {/* Added conditional class */}
+                <AnimatePresence>
+                  {selectedFile && (
+                    <motion.div
+                      className="selected-file-preview"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                    >
+                      <span>📎 {selectedFile.name}</span>
+                      <motion.button
+                        onClick={handleRemoveFile}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        <X size={16} />
+                      </motion.button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
                 <textarea
                   className="inputtextarea"
                   rows={1}
@@ -2492,6 +2472,8 @@ const Chatbot: React.FC = () => {
                       ? "Session terminated"
                       : isRecording
                       ? "Recording..."
+                      : selectedFile
+                      ? selectedFile.name
                       : "Type your message..."
                   }
                   disabled={isTyping || isRecording || isBanned}
@@ -2499,6 +2481,8 @@ const Chatbot: React.FC = () => {
                     background: userPreferences.themeSettings.background,
                     color: userPreferences.themeSettings.text,
                     border: `1px solid ${userPreferences.themeSettings.border}`,
+                    borderBottomLeftRadius: "12px", // Ensure this is always 12px for consistency
+                    borderBottomRightRadius: "12px", // Ensure this is always 12px for consistency
                   }}
                 ></textarea>
 
@@ -2507,14 +2491,17 @@ const Chatbot: React.FC = () => {
                     className="send-btn"
                     onClick={handleSendMessage}
                     disabled={
-                      !inputValue.trim() || isTyping || isRecording || isBanned
+                      (!inputValue.trim() && !selectedFile) ||
+                      isTyping ||
+                      isRecording ||
+                      isBanned
                     }
                     title="Send message"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     style={{
                       background:
-                        inputValue.trim() &&
+                        (inputValue.trim() || selectedFile) &&
                         !isTyping &&
                         !isRecording &&
                         !isBanned
@@ -2568,17 +2555,6 @@ const Chatbot: React.FC = () => {
         onGreetingChange={handleGreetingChange}
         currentGreeting={userPreferences.greetingSettings}
       />
-
-      {/* Upload Form Modal */}
-      <AnimatePresence>
-        {showUploadForm && (
-          <UploadForm
-            onSubmit={handleUploadFormSubmit}
-            onClose={() => setShowUploadForm(false)}
-            userPreferences={userPreferences}
-          />
-        )}
-      </AnimatePresence>
 
       {/* FAQ Modal */}
       <AnimatePresence>
