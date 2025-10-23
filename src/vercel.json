@@ -1,8 +1,25 @@
 {
   "builds": [
-    { "src": "dist/**/*", "use": "@vercel/static" }
+    {
+      "src": "dist/**/*",
+      "use": "@vercel/static"
+    }
   ],
   "routes": [
-    { "src": "/(.*)", "dest": "/index.html" }
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; frame-ancestors https://example.com https://coupon-hub-tau.vercel.app;"
+        }
+      ]
+    }
   ]
 }
