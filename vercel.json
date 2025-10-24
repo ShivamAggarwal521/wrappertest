@@ -1,27 +1,11 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-
-  "functions": {
-    "api/users/**/*.js": {
-      "maxDuration": 30
-    }
-  },
-
-  "builds": [
-    { "src": "dist/**/*", "use": "@vercel/static" }
-  ],
-
-  "routes": [
-    { "src": "/(.*)", "dest": "/index.html" }
-  ],
-
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; frame-ancestors 'none';"
+          "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; frame-ancestors https://coupon-hub-tau.vercel.app https://www.my-website.com;"
         }
       ]
     }
